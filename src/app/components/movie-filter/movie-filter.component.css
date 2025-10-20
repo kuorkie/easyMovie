@@ -1,0 +1,23 @@
+.slider-wrap {
+  position: relative;
+  padding-top: 28px; /* место для тултипа */
+}
+
+.slider-tooltip {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none; /* чтобы не мешал клику по слайдеру */
+  transition: opacity .15s ease;
+}
+
+.slider-tooltip.hidden {
+  opacity: 0;
+}

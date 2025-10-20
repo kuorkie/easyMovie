@@ -1,0 +1,18 @@
+<div class="flex flex-row gap-3">
+  <img [src]="item.movie_banner" height="200" width="400"/>
+<div>
+  <ng-container *ngFor="let col of column">
+
+      <div class="flex flex-column gap-4">
+        <div class="flex flex-row gap-2 w-26rem">
+          <label class="font-bold">{{col.label}}: </label>
+          <span>{{col.value}}</span>
+      </div>
+
+
+
+    </div>
+  </ng-container>
+
+</div>
+</div>
