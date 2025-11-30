@@ -44,6 +44,9 @@ export class MovieFilterComponent {
 
 
 
+
+
+
   save(){
     // if(this.filter.dirty){
       this.ref.close(this.filter.value)

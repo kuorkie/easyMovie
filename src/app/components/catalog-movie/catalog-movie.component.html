@@ -1,51 +1,55 @@
-<div class="flex flex-column gap-2" style="background-color: #F8FAFC">
-  <p-menubar [model]="items" style="background-color: white;color: black;backdrop-filter: blur(8px)" >
+<ngx-spinner
+
+  bdColor="rgba(51,51,51,0.8)"
+  size="medium"
+  color="#fff"
+  type="ball-scale-multiple"
+>
+  <p style="font-size: 20px; color: white">Loading...</p>
+</ngx-spinner>
+<div>
+  <div class="flex flex-column gap-2" style="background-color: #F8FAFC">
+    <p-menubar [model]="items">
 
 
-    <ng-template #item let-item let-root="root">
-      <a pButton [class]="'flex items-center p-menubar-item-link'" >
-        <span>{{ item.label }}</span>
+      <ng-template #item let-item let-root="root">
+        <a pButton [class]="'flex items-center p-menubar-item-link'">
+          <span>{{ item.label }}</span>
 
-        <i [ngClass]="[item.icon]"></i>
-      </a>
-    </ng-template>
-    <ng-template #end>
-      <div class="flex items-center gap-2">
-        <input type="text" pInputText placeholder="Поиск по наименованию" class="w-36" (input)="onSearch()"
-               [(ngModel)]="searchText"/>
-        <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"/>
+          <i [ngClass]="[item.icon]"></i>
+        </a>
+      </ng-template>
+      <ng-template #end>
+        <div class="flex items-center gap-2">
+          <input type="text" pInputText placeholder="Поиск по наименованию" class="w-36" (input)="onSearch()"
+                 [(ngModel)]="searchText"/>
+          <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"/>
+        </div>
+      </ng-template>
+    </p-menubar>
+    <div *ngIf="movies$ | async as movie;">
+      <p-paginator (onPageChange)="getPage($event)"
+                   [first]="first"
+                   [rows]="10"
+                   [totalRecords]="movie.totalResults"
+                   [showCurrentPageReport]="true"
+                   [showPageLinks]="false"
+                   [showJumpToPageDropdown]="false"
+                   currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"></p-paginator>
+      <div class="grid gap-5 w-full justify-content-center p-5">
+        <ng-container *ngFor="let item of movie.Search ">
+          <p-card class="w-14rem cursor-pointer" (click)="detail(item)">
+            <ng-template #header>
+              <img alt="Card" loading="lazy" class="w-full" height="250" appImgNotFound [src]="item.Poster"/>
+            </ng-template>
+            <ng-template #title>{{item.Title}}</ng-template>
+
+          </p-card>
+        </ng-container>
       </div>
-    </ng-template>
-  </p-menubar>
+    </div>
 
-  <p-galleria [value]="images()" *ngIf="!searchText && !movieService.filterOn(filter)" [(activeIndex)]="activeIndex"
-              [numVisible]="6"
-              [containerStyle]="{ 'height':'600px' }">
-    <ng-template pTemplate="item" let-item>
-      <img [src]="item.movie_banner" alt="{{ item.title }}" height="400" class="w-full"
-           style="object-fit: cover;object-position: 50% 30%;"/>
-
-      <div class="g-topbar">
-        <h3 class="g-title">{{ item.title }}</h3>
-
-      </div>
-    </ng-template>
-
-    <ng-template pTemplate="thumbnail" let-item>
-      <img [src]="item.image" class="w-full" height="200"/>
-    </ng-template>
-  </p-galleria>
-
-  <div class="grid gap-5 w-full justify-content-center p-5">
-    <ng-container *ngFor="let movie of filteredMovie">
-      <p-card class="w-15rem cursor-pointer" (click)="detail(movie)">
-        <ng-template #header>
-          <img alt="Card" class="w-full" height="300" [src]="movie.image"/>
-        </ng-template>
-        <ng-template #title>{{movie.title}}</ng-template>
-
-      </p-card>
-    </ng-container>
   </div>
+
 </div>
 

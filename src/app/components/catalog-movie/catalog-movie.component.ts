@@ -1,5 +1,5 @@
-import {Component, model} from '@angular/core';
-import {CommonModule} from '@angular/common';
+import {ChangeDetectionStrategy, Component, model} from '@angular/core';
+import {AsyncPipe, CommonModule} from '@angular/common';
 import {CardModule} from 'primeng/card';
 import {MovieService} from '../../services/movie.service';
 import {MovieInterface} from '../../interfaces/movie.interface';
@@ -18,27 +18,43 @@ import {MovieFilterComponent} from '../movie-filter/movie-filter.component';
 import {FilterInterface} from '../../interfaces/filter.interface';
 import {DialogModule} from 'primeng/dialog';
 import {MovieDetailComponent} from '../movie-detail/movie-detail.component';
+import {ChangeDetection} from '@angular/cli/lib/config/workspace-schema';
+import {PaginatorModule} from 'primeng/paginator';
+import {PaginationRequest} from '../../interfaces/pagination-request';
+import {BehaviorSubject, finalize, Observable, switchMap} from 'rxjs';
+import {PaginationResponse} from '../../interfaces/pagination-response';
+import {ImgNotFoundDirective} from '../../directives/img-not-found.directive';
+import {ProgressSpinnerModule} from 'primeng/progressspinner';
+import {NgxSpinnerModule, NgxSpinnerService} from 'ngx-spinner';
 
 @Component({
   selector: 'app-catalog-movie',
   standalone:true,
-  imports: [CommonModule,CardModule,FormsModule,ButtonModule,GalleriaModule,
-    MenubarModule,BadgeModule,AvatarModule, InputTextModule,DialogModule],
+  imports: [CommonModule,CardModule,FormsModule,ButtonModule,
+    GalleriaModule,PaginatorModule,NgxSpinnerModule,ProgressSpinnerModule,
+    MenubarModule,BadgeModule,AvatarModule,
+    InputTextModule,DialogModule,ImgNotFoundDirective],
+  providers:[NgxSpinnerModule],
   templateUrl: './catalog-movie.component.html',
   styleUrl: './catalog-movie.component.css'
 })
 export class CatalogMovieComponent {
   movieList:MovieInterface[] = []
+  movies$!:Observable<PaginationResponse>
   items:MenuItem[] = []
   images = model<MovieInterface[]>([]);
   _activeIndex: number = 2;
-  searchText:string = ''
+  searchText:string = 'Sad'
   filteredMovie:MovieInterface[] = []
   filter:FilterInterface = {
     date:'',
     score:''
   }
-  constructor(protected movieService:MovieService,private router:Router,private dialog:DialogService) {
+  private page$ = new BehaviorSubject<number>(1);
+
+  first:number = 0
+  constructor(protected movieService:MovieService,private router:Router,
+              private dialog:DialogService,private spinner:NgxSpinnerService) {
   }
 
   ngOnInit(){
@@ -72,22 +88,34 @@ export class CatalogMovieComponent {
         if(value){
           this.filter = value
           this.items[1].icon =  this.movieService.filterOn(this.filter) ? 'pi pi-filter-fill':'pi pi-filter'
-          this.onFilter(value)
+          this.getMovieList()
         }
     })
   }
 
+  getPage(event:any){
+    this.first = event.first
+    this.page$.next(event.page+1)
+    this.getMovieList()
+  }
+
   getMovieList(){
-    this.movieService.getMovie().subscribe(value => {
-      this.movieList = [...value];
-      this.filteredMovie = this.movieList
-      this.images.set( value.splice(0,10))
-      console.log(this.images)
-    })
+   this.movies$ =  this.page$.pipe(
+     switchMap(page => {
+       this.spinner.show();
+       return this.movieService.getMovie(page,this.searchText).pipe(
+         finalize(() => this.spinner.hide())
+       );
+     })
+   )
   }
 
   get activeIndex(): number {
     return this._activeIndex;
+  }
+
+  onImgError(event:ErrorEvent){
+    console.log(event)
   }
 
   set activeIndex(newValue) {
@@ -98,40 +126,30 @@ export class CatalogMovieComponent {
 
 
   onFilter(value:FilterInterface){
-    if(this.movieService.filterOn(value)){
-      const { date, score } = value;
-      this.filteredMovie =
-        this.movieList.filter(item=>{
-          const byDate =
-            !date ||
-            String(item.release_date) === String(new Date(date).getFullYear());
 
-          const byScore =
-            score == null || Number(item.rt_score) >= Number(score);
-
-          return byDate&&byScore
-        })
-    }else{
-      this.filteredMovie = this.movieList
-    }
   }
 
   onSearch(){
-    if(this.searchText){
-    this.filteredMovie =  this.movieList.filter(item=>item.title.toLowerCase().includes(this.searchText.toLowerCase()))
-    }else{
-      this.filteredMovie = this.movieList
-    }
+
+   this.getMovieList()
   }
 
-  detail(item:MovieInterface){
-    const modal = this.dialog.open(MovieDetailComponent,{
-      closable:true,
-      header:item.title,
-      data:{
-        ...item
-      }
-    })
+  detail(item:MovieInterface) {
+    this.spinner.show()
+    this.movieService.getDetail(item.imdbID).subscribe({
+      next: (value) => {
+        this.spinner.hide()
+        const modal = this.dialog.open(MovieDetailComponent, {
+          closable: true,
+          header: item.Title,
+          data: {
+            ...value
+          }
 
+        })
+
+      }
+
+    })
   }
 }
