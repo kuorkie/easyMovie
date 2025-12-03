@@ -5,10 +5,9 @@
   color="#fff"
   type="ball-scale-multiple"
 >
-  <p style="font-size: 20px; color: white">Loading...</p>
 </ngx-spinner>
 <div>
-  <div class="flex flex-column gap-2" style="background-color: #F8FAFC">
+  <div class="flex flex-column gap-2">
     <p-menubar [model]="items">
 
 
@@ -27,22 +26,22 @@
         </div>
       </ng-template>
     </p-menubar>
-    <div *ngIf="movies$ | async as movie;">
+    <div>
       <p-paginator (onPageChange)="getPage($event)"
-                   [first]="first"
+                   [first]="page$.value.first"
                    [rows]="10"
-                   [totalRecords]="movie.totalResults"
+                   [totalRecords]="page$.value.totalRecord"
                    [showCurrentPageReport]="true"
                    [showPageLinks]="false"
                    [showJumpToPageDropdown]="false"
                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"></p-paginator>
-      <div class="grid gap-5 w-full justify-content-center p-5">
-        <ng-container *ngFor="let item of movie.Search ">
-          <p-card class="w-14rem cursor-pointer" (click)="detail(item)">
+      <div class="grid gap-5 w-full justify-content-center p-5" *ngIf="movies$ | async as movie;">
+        <ng-container *ngFor="let item of movie.Search ?? []  ">
+          <p-card  [style]="{ width: '15rem', overflow: 'hidden',cursor:'pointer' }" (click)="detail(item)">
             <ng-template #header>
               <img alt="Card" loading="lazy" class="w-full" height="250" appImgNotFound [src]="item.Poster"/>
             </ng-template>
-            <ng-template #title>{{item.Title}}</ng-template>
+            <ng-template #title>{{item.Title | cutText:35}}</ng-template>
 
           </p-card>
         </ng-container>

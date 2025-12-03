@@ -30,3 +30,20 @@ export interface Rating{
   Source: string,
   Value: string
 }
+
+export type DetailUi =
+  | {
+  label: string;
+  value: string;
+  type: 'text';
+}
+  | {
+  label: string;
+  value: string;
+  type: 'button';
+}
+  | {
+  label: string;
+  value: Rating[];
+  type: 'rating';
+};
