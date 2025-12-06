@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {MovieInterface} from '../interfaces/movie.interface';
-import {FilterInterface} from '../interfaces/filter.interface';
+import {FilterForm, FilterInterface} from '../interfaces/filter.interface';
 import {PaginationResponse} from '../interfaces/pagination-response';
 import {MovieDetail} from '../interfaces/movie-detail';
 
@@ -13,14 +13,23 @@ export class MovieService {
 
   constructor(private http:HttpClient) { }
 
-  getMovie(page:number,searchText:string):Observable<PaginationResponse>{
-    return this.http.get<PaginationResponse>('https://www.omdbapi.com/',{
-      params:{
-        apikey:"f390154",
-        page:page,
-        s:searchText
-      }
-    })
+  getMovie(page:number,filter:FilterInterface):Observable<PaginationResponse>{
+    const { searchText, date, type } = filter;
+    const key = "f390154"
+    let params = new HttpParams().set('page', page.toString());
+    params = params.set('apiKey',key)
+    params = this.setIfDefined(params, 's', searchText);
+    params = this.setIfDefined(params, 'y', date);
+    params = this.setIfDefined(params, 'type', type);
+
+    return this.http.get<PaginationResponse>('https://www.omdbapi.com/',{params})
+  }
+
+  private setIfDefined(params: HttpParams, key: string, value: unknown): HttpParams {
+    if (value === null || value === undefined || value === '') {
+      return params;
+    }
+    return params.set(key, String(value));
   }
 
   getDetail(code:string):Observable<MovieDetail>{
