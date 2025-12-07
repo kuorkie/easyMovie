@@ -2,6 +2,12 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.5.
 
+### Требования
+- Node.js (LTS)
+  - Версия: v20.18.1
+- npm
+  - Версия: 10.8.2
+  - 
 ## Development server
 
 To start a local development server, run:
