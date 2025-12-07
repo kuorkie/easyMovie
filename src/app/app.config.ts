@@ -6,7 +6,6 @@ import {provideAnimationsAsync} from '@angular/platform-browser/animations/async
 import {providePrimeNG} from 'primeng/config';
 import {provideHttpClient} from '@angular/common/http';
 import Aura from '@primeuix/themes/aura';
-import Lara from '@primeuix/themes/lara';
 import {definePreset} from '@primeuix/themes';
 import {DialogService} from 'primeng/dynamicdialog';
 import {MessageService} from 'primeng/api';
