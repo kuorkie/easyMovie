@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {CommonModule} from '@angular/common';
+import {AsyncPipe, CommonModule, NgForOf, NgIf} from '@angular/common';
 import {CardModule} from 'primeng/card';
 import {MovieService} from '../../services/movie.service';
 import {MovieInterface} from '../../interfaces/movie.interface';
@@ -52,9 +52,9 @@ import {QueryState, TriggerEvent} from '../../interfaces/type-of-trigger';
 @Component({
   selector: 'app-catalog-movie',
   standalone: true,
-  imports: [CommonModule, CardModule, FormsModule, ButtonModule, SelectModule, PanelModule,
-    GalleriaModule, PaginatorModule, NgxSpinnerModule, ProgressSpinnerModule, ToastModule,
-    MenubarModule, BadgeModule, AvatarModule, CutTextPipe, DatePickerModule, ReactiveFormsModule,
+  imports: [ CardModule, ButtonModule, SelectModule, PanelModule,
+    NgIf,NgForOf,AsyncPipe, PaginatorModule, NgxSpinnerModule, ToastModule,
+    MenubarModule, AvatarModule, CutTextPipe, DatePickerModule, ReactiveFormsModule,
     InputTextModule, DialogModule, ImgNotFoundDirective],
   providers: [NgxSpinnerService, MessageService],
   templateUrl: './catalog-movie.component.html',
@@ -207,7 +207,12 @@ export class CatalogMovieComponent {
             ...value
           }
         })
+      },
+      error:(error)=>{
+        this.spinner.hide()
+        this.messageService.add({severity: 'error', summary: 'Ошибка', detail: error})
       }
     })
   }
+
 }

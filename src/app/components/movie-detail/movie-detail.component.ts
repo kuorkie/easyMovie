@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {DynamicDialogConfig} from 'primeng/dynamicdialog';
-import {CommonModule} from '@angular/common';
+import {CommonModule, NgFor, NgForOf, NgSwitch, NgSwitchCase} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {BadgeModule} from 'primeng/badge';
 import {RatingModule} from 'primeng/rating';
@@ -9,7 +9,7 @@ import {DetailUi, MovieDetail} from '../../interfaces/movie-detail';
 
 @Component({
   selector: 'app-movie-detail',
-  imports: [CommonModule, FormsModule, BadgeModule, RatingModule, ImgNotFoundDirective],
+  imports: [ NgForOf, BadgeModule, RatingModule, ImgNotFoundDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movie-detail.component.html',
   styleUrl: './movie-detail.component.css'
