@@ -8,67 +8,74 @@
 </ngx-spinner>
 <p-toast></p-toast>
 <div class="flex flex-column gap-2 ">
-    <form [formGroup]="filter">
-      <p-menubar>
+  <form [formGroup]="filter">
+    <p-menubar>
 
-        <ng-template #start>
-          <div class="flex align-items-center gap-2">
-            <p-select
-              [options]="types"
-              [appendTo]="'body'"
-              placeholder="Типы"
-              formControlName="type"
-            ></p-select>
+      <ng-template #start>
+        <div class="flex align-items-center gap-2">
+          <p-select
+            [options]="types"
+            [appendTo]="'body'"
+            placeholder="Типы"
+            formControlName="type"
+            showClear="true"
+          ></p-select>
 
-            <p-datePicker
-              placeholder="Дата выхода"
-              [showIcon]="true"
-              view="year"
-              dateFormat="yy"
-              [maxDate]="currentYear"
-              (onSelect)="dateToYear($event)"
-              [readonlyInput]="true"
+          <p-datePicker
+            placeholder="Дата выхода"
+            [showIcon]="true"
+            view="year"
+            dateFormat="yy"
+            showClear="true"
+            [maxDate]="currentYear"
+            formControlName="date"
+            [readonlyInput]="true"
 
-            >
-            </p-datePicker>
+          >
+          </p-datePicker>
 
-          </div>
-        </ng-template>
-        <ng-template #end>
-          <div class="flex items-center gap-2">
-            <input type="text" pInputText placeholder="Поиск по наименованию" class="w-36" minlength="3"
-                   formControlName="searchText" />
-            <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"/>
-          </div>
-        </ng-template>
-      </p-menubar>
+        </div>
+      </ng-template>
+      <ng-template #end>
+        <div class="flex items-center gap-2">
+          <input type="text" pInputText placeholder="Поиск по наименованию" class="w-36" minlength="3"
+                 formControlName="searchText"/>
+          <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"/>
+        </div>
+      </ng-template>
+    </p-menubar>
 
-    </form>
-    <div *ngIf="movies$ | async as movie;"  >
+  </form>
+  <div *ngIf="movies$ | async as movie;">
 
-      <p-paginator *ngIf="movie.Search"
-               (onPageChange)="getPage($event)"
-               [first]="page$.value.first"
-               [rows]="10"
-               [totalRecords]="page$.value.totalRecord"
-               [showCurrentPageReport]="true"
-               [showPageLinks]="false"
-               [showJumpToPageDropdown]="false"
-               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"></p-paginator>
+    <p-paginator *ngIf="movie.Search"
+                 (onPageChange)="getPage($event)"
+                 [first]="page$.value.first"
+                 [rows]="10"
+                 [totalRecords]="movie.totalResults"
+                 [showCurrentPageReport]="true"
+                 [showPageLinks]="false"
+                 [showJumpToPageDropdown]="false"
+                 currentPageReportTemplate="Показано с {first} по {last} из {totalRecords}"></p-paginator>
 
-      <div class="grid gap-5 w-full justify-content-center p-5 overflow-auto" [style.height.vh]="75">
-        <ng-container *ngFor="let item of movie.Search ?? []  ">
-          <p-card  [style]="{ width: '15rem', overflow: 'hidden',cursor:'pointer' }" (click)="detail(item)">
-            <ng-template #header>
-              <img alt="Card" loading="lazy" class="w-full" height="250" appImgNotFound [src]="item.Poster"/>
-            </ng-template>
-            <ng-template #title>{{item.Title | cutText:35}}</ng-template>
+    <div  [style.height.vh]="75" class=" w-full  p-5 overflow-auto">
+      <div class="grid gap-5 justify-content-center " [style]="{height:'20rem'} ">
+        <p-card [style]="{ width: '15rem', overflow: 'hidden',cursor:'pointer'}"  *ngFor="let item of movie.Search ?? [] ; let i = index" (click)="detail(item)">
+          <ng-template #header>
+            <img alt="Card"
+                 [attr.loading]="i < 1 ? 'eager' : 'lazy'"
+                 [attr.fetchpriority]="i < 1 ? 'high' : 'auto'"
+                 class="w-full"
+                 height="250"
+                 appImgNotFound [src]="item.Poster"/>
+          </ng-template>
+          <ng-template #title>{{item.Title | cutText:35}}</ng-template>
 
-          </p-card>
-        </ng-container>
+        </p-card>
       </div>
     </div>
-
   </div>
+
+</div>
 
 

@@ -17,11 +17,17 @@
       </div>
       }
       @else if(col.type === 'rating' && col.value.length > 0){
-      <div class="flex flex-row gap-1 w-28rem">
-        <label class="font-bold">{{col.label}} : </label>
-        @for (item of col.value; track item.Source) {
-      <span>{{item.Source}}: </span>
-      <span>{{item.Value}}</span>
+      <div class="flex flex-row gap-1 align-items-center w-30rem">
+        <label class="font-bold">{{col.label}}:</label>
+        @for (item of col.value; let i = $index; track item.Source;) {
+        <div>
+          <span style="width: 22rem">{{item.Source}}: </span>
+          <span>{{item.Value}}</span>
+            @if(i+1 != col.value.length){
+            <span >,</span>
+            }
+        </div>
+
       }
 
       </div>

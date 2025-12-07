@@ -12,7 +12,6 @@ import {AvatarModule} from 'primeng/avatar';
 import {InputTextModule} from 'primeng/inputtext';
 import {Router} from '@angular/router';
 import {
-  FormBuilder,
   FormControl,
   FormGroup,
   FormsModule,
@@ -34,8 +33,8 @@ import {
   switchMap,
   tap,
   map,
-  startWith,
-  distinctUntilChanged
+
+  distinctUntilChanged, merge, scan
 } from 'rxjs';
 import {PaginationResponse} from '../../interfaces/pagination-response';
 import {ImgNotFoundDirective} from '../../directives/img-not-found.directive';
@@ -48,116 +47,123 @@ import {PanelModule} from 'primeng/panel';
 import {DatePickerModule} from 'primeng/datepicker';
 import {Type} from '../../enum/type';
 import {ToastModule} from 'primeng/toast';
+import {QueryState, TriggerEvent} from '../../interfaces/type-of-trigger';
 
 @Component({
   selector: 'app-catalog-movie',
   standalone: true,
-  imports: [CommonModule, CardModule, FormsModule, ButtonModule,SelectModule,PanelModule,
-    GalleriaModule, PaginatorModule, NgxSpinnerModule, ProgressSpinnerModule,ToastModule,
-    MenubarModule, BadgeModule, AvatarModule,CutTextPipe,DatePickerModule,ReactiveFormsModule,
+  imports: [CommonModule, CardModule, FormsModule, ButtonModule, SelectModule, PanelModule,
+    GalleriaModule, PaginatorModule, NgxSpinnerModule, ProgressSpinnerModule, ToastModule,
+    MenubarModule, BadgeModule, AvatarModule, CutTextPipe, DatePickerModule, ReactiveFormsModule,
     InputTextModule, DialogModule, ImgNotFoundDirective],
-  providers: [NgxSpinnerService,MessageService],
+  providers: [NgxSpinnerService, MessageService],
   templateUrl: './catalog-movie.component.html',
   styleUrl: './catalog-movie.component.css'
 })
 export class CatalogMovieComponent {
   movieList: MovieInterface[] = []
-  currentYear:Date = new Date()
+  currentYear: Date = new Date()
   movies$!: Observable<PaginationResponse>
   items: MenuItem[] = []
   searchText: string = 'Sad'
-  types:ListInterface[] = [{
-    label:'Фильмы',
-    value:Type.Movie
-  },{
+  types: ListInterface[] = [{
+    label: 'Фильмы',
+    value: Type.Movie
+  }, {
     label: "Сериал",
-    value:Type.Serial
+    value: Type.Serial
   }]
 
-  filter!:FormGroup<FilterForm>
+
+  filter!: FormGroup<FilterForm>
 
   public page$ = new BehaviorSubject<PaginationRequest>({
     page: 1,
-    totalRecord: 0,
     first: 0
   } as PaginationRequest);
 
-  constructor(protected movieService: MovieService, private router: Router,private messageService:MessageService,
-              private dialog: DialogService, private spinner: NgxSpinnerService,private fb:NonNullableFormBuilder) {
-    this.initializeForm()
+  constructor(protected movieService: MovieService, private router: Router, private messageService: MessageService,
+              private dialog: DialogService, private spinner: NgxSpinnerService, private fb: NonNullableFormBuilder) {
 
   }
 
   ngOnInit() {
+    this.initializeForm()
     this.getMovieList()
   }
 
-  ngAfterViewInit(){
-    this.filter.get('searchText')?.setValue('New year'); // 2025-01-01
 
-  }
-
-  dateToYear($event:Date){
-    this.filter.patchValue({
-        date: $event.getFullYear().toString()
-      })
-  }
-
-  initializeForm(){
+  initializeForm() {
     this.filter = this.fb.group<FilterForm>({
-      searchText:  new FormControl<string>('',[Validators.min(3),Validators.max(30)]),
-      type: new FormControl<Type | null>(null),
-      date: new FormControl<Date | string| null>(null)
+      searchText: new FormControl('New Year', [Validators.min(3), Validators.max(30)]),
+      type: new FormControl(null),
+      date: new FormControl(null)
     })
   }
-
 
 
   getPage(event: PaginatorState) {
     this.page$.next(<PaginationRequest>{
       ...event,
-      page:(event.page ?? 0) + 1 //так как метод с 1 работает, а инструмент с 0 page
+      page: (event.page ?? 0) + 1 //так как метод с 1 работает, а инструмент с 0 page
     })
-    this.getMovieList()
   }
 
-  searchChanged(event:Event){
-    console.log(event)
-    const input = event.target as HTMLInputElement;
-    const text = input.value.trim()
-    const defaultSearch = 'new year'
-    console.log(text)
-    if(text.length >= 3){
-      this.filter.get('searchText')?.setValue(text)
-    }else{
-      console.log(this.filter)
-      if(this.filter.get('date')?.value || this.filter.get('type')?.value ){
-        this.messageService.add({severity:'warn',summary:'Предупреждение',detail:'Пожалуйста, заполните поле поиска - данных слишком много.'})
-      }else{
-        this.filter.get('searchText')?.setValue(defaultSearch)
 
-      }
-    }
+  clearPage() {
+    return {
+      filter: this.filter.getRawValue() as FilterInterface,
+      page: {page: 1, first: 0}
+    };
+
   }
 
   getMovieList() {
 
-    this.movies$ = this.filter.valueChanges.pipe(
-      map((value)=>{
-        return {
-          ...value,
-        searchText:value.searchText?.trim()
-        }
-      }),
-      filter(value => (value.searchText ?? '').length >= 3),
+    const filter$ = this.filter.valueChanges.pipe(
+      map(value => ({
+        type: value.type ?? null,
+        searchText: (value.searchText ?? '').trim(),
+        date: value.date ? (value.date as Date).getFullYear().toString() : null
+      })),
+      filter(value => value.searchText.length >= 3),
       distinctUntilChanged((a, b) =>
         a.searchText === b.searchText &&
         a.type === b.type &&
         a.date === b.date
-      ),
-      switchMap((value) => {
+      )
+    );
+
+    const pageQuery$ = this.page$.pipe(
+      map(p => ({page: p.page, first: p.first})),
+      distinctUntilChanged((a, b) =>
+        a.page === b.page && a.first === b.first
+      )
+    );
+
+    const trigger$ = merge(
+      filter$.pipe(map(filter => ({kind: 'filter' as const, filter}))),
+      pageQuery$.pipe(map(page => ({kind: 'page' as const, page})))
+    ).pipe(
+      scan<TriggerEvent, QueryState>((state, event) => {
+        if (event.kind === 'filter') {
+          return {
+            filter: event.filter,
+            page: {page: 1, first: 0}
+          };
+        }
+
+        return {
+          ...state,
+          page: event.page
+        };
+      }, this.clearPage())
+    );
+
+    this.movies$ = trigger$.pipe(
+      switchMap(({filter, page}) => {
         this.spinner.show()
-        return this.movieService.getMovie(this.page$.value.page, value as FilterInterface).pipe(
+        return this.movieService.getMovie(page.page, filter).pipe(
           tap({
             next: resp => {
               if (resp.Response === 'False') {
@@ -166,11 +172,6 @@ export class CatalogMovieComponent {
                   summary: 'Ошибка',
                   detail: resp.Error ?? 'Неизвестная ошибка'
                 });
-              } else {
-                this.page$.next({
-                  ...this.page$.value,
-                  totalRecord: resp.totalResults
-                })
               }
             },
             error: err => {
@@ -187,24 +188,18 @@ export class CatalogMovieComponent {
           }),
           finalize(() => this.spinner.hide())
         )
-        })
+      })
     )
 
   }
 
-
-
-
-  onSearch() {
-    this.getMovieList()
-  }
 
   detail(item: MovieInterface) {
     this.spinner.show()
     this.movieService.getDetail(item.imdbID).subscribe({
       next: (value) => {
         this.spinner.hide()
-        const modal = this.dialog.open(MovieDetailComponent, {
+        this.dialog.open(MovieDetailComponent, {
           closable: true,
           header: item.Title,
           modal: true,
