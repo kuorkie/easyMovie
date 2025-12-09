@@ -4,17 +4,14 @@ import {CardModule} from 'primeng/card';
 import {MovieService} from '../../services/movie.service';
 import {MovieInterface} from '../../interfaces/movie.interface';
 import {ButtonModule} from 'primeng/button';
-import {GalleriaModule} from 'primeng/galleria';
 import {MenubarModule} from 'primeng/menubar';
 import {MenuItem, MessageService} from 'primeng/api';
-import {BadgeModule} from 'primeng/badge';
 import {AvatarModule} from 'primeng/avatar';
 import {InputTextModule} from 'primeng/inputtext';
 import {Router} from '@angular/router';
 import {
   FormControl,
   FormGroup,
-  FormsModule,
   NonNullableFormBuilder,
   ReactiveFormsModule, Validators
 } from '@angular/forms';
@@ -38,7 +35,6 @@ import {
 } from 'rxjs';
 import {PaginationResponse} from '../../interfaces/pagination-response';
 import {ImgNotFoundDirective} from '../../directives/img-not-found.directive';
-import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {NgxSpinnerModule, NgxSpinnerService} from 'ngx-spinner';
 import {PaginationRequest} from '../../interfaces/pagination-request';
 import {CutTextPipe} from '../../pipes/cut-text.pipe';
