@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {DynamicDialogConfig} from 'primeng/dynamicdialog';
-import {CommonModule, NgFor, NgForOf, NgSwitch, NgSwitchCase} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+import {NgForOf} from '@angular/common';
 import {BadgeModule} from 'primeng/badge';
 import {RatingModule} from 'primeng/rating';
 import {ImgNotFoundDirective} from '../../directives/img-not-found.directive';
